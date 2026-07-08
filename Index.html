@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pastel Spotify Player</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #ffb3ba, #ffdfba, #ffffba, #baffc9, #bae1ff);
+            background-size: 400% 400%;
+            animation: gradientAnimation 15s ease infinite;
+        }
+
+        @keyframes gradientAnimation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .container {
+            background-color: rgba(255, 255, 255, 0.85);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        h1 {
+            color: #555;
+            margin-bottom: 20px;
+        }
+
+        input[type="text"] {
+            width: 80%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 12px 25px;
+            background-color: #ffb7b2;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #ff9aa2;
+        }
+
+        #player-container {
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Spotify Web Player</h1>
+    <input type="text" id="spotify-link" placeholder="Paste your Spotify track link here...">
+    <br>
+    <button onclick="updatePlayer()">Play Song</button>
+    
+    <div id="player-container">
+        <!-- The Spotify embed will appear here -->
+    </div>
+</div>
+
+<script>
+    function updatePlayer() {
+        const linkInput = document.getElementById('spotify-link').value;
+        const playerContainer = document.getElementById('player-container');
+        
+        let trackId = '';
+        
+        if (linkInput.includes('track/')) {
+            trackId = linkInput.split('track/')[1].split('?')[0];
+        } else {
+            alert('Please paste a valid Spotify track link.');
+            return;
+        }
+
+        const embedCode = `
+            <iframe 
+                src="https://open.spotify.com/embed/track/${trackId}?utm_source=generator" 
+                width="100%" 
+                height="380" 
+                frameBorder="0" 
+                allowfullscreen="" 
+                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture">
+            </iframe>
+        `;
+        
+        playerContainer.innerHTML = embedCode;
+    }
+</script>
+
+</body>
+</html>
