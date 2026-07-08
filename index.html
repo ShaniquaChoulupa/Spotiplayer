@@ -3,114 +3,332 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pastel Spotify Player</title>
+    <title>Classic Video Hub</title>
     <style>
-        body {
+        /* --- Core Layout & iOS 9 Era Red/White Aesthetics --- */
+        * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: Arial, sans-serif;
-            height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f1f1f1;
+            color: #222;
+            padding-bottom: 20px;
+        }
+
+        /* Fixed Header */
+        header {
+            background-color: #e52d27;
+            color: #ffffff;
             display: flex;
-            justify-content: center;
+            justify-content: space-between;
             align-items: center;
-            background: linear-gradient(135deg, #ffb3ba, #ffdfba, #ffffba, #baffc9, #bae1ff);
-            background-size: 400% 400%;
-            animation: gradientAnimation 15s ease infinite;
+            padding: 10px 16px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
-        @keyframes gradientAnimation {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+        .logo {
+            font-size: 20px;
+            font-weight: bold;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
 
-        .container {
-            background-color: rgba(255, 255, 255, 0.85);
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
-            backdrop-filter: blur(4px);
-            border: 1px solid rgba(255, 255, 255, 0.18);
-            text-align: center;
-            max-width: 500px;
-            width: 90%;
+        .logo span {
+            background-color: #ffffff;
+            color: #e52d27;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 14px;
+            margin-left: 2px;
         }
 
-        h1 {
-            color: #555;
-            margin-bottom: 20px;
-        }
-
-        input[type="text"] {
-            width: 80%;
-            padding: 12px;
-            margin-bottom: 15px;
-            border: 2px solid #ddd;
-            border-radius: 10px;
-            font-size: 16px;
-        }
-
-        button {
-            padding: 12px 25px;
-            background-color: #ffb7b2;
-            color: white;
+        .refresh-btn {
+            background: none;
             border: none;
-            border-radius: 10px;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 5px;
+            transition: transform 0.2s ease;
+        }
+
+        .refresh-btn:active {
+            transform: scale(0.9);
+        }
+
+        /* --- Custom Video Player Modal --- */
+        .player-container {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            background: #000;
+            display: none; /* Hidden until a video is clicked */
+            position: relative;
+        }
+
+        video {
+            width: 100%;
+            display: block;
+        }
+
+        /* Custom Controller Overlay */
+        .video-controls {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            gap: 10px;
+            color: white;
+        }
+
+        .play-pause-btn {
+            background: none;
+            border: none;
+            color: white;
             font-size: 16px;
             cursor: pointer;
-            transition: background-color 0.3s;
         }
 
-        button:hover {
-            background-color: #ff9aa2;
+        .progress-bar {
+            flex-grow: 1;
+            height: 5px;
+            background: #555;
+            position: relative;
+            cursor: pointer;
+            border-radius: 3px;
         }
 
-        #player-container {
-            margin-top: 30px;
+        .progress-fill {
+            height: 100%;
+            background: #e52d27;
+            width: 0%;
+            border-radius: 3px;
+        }
+
+        /* --- Video Feed Grid --- */
+        .feed {
+            max-width: 800px;
+            margin: 15px auto;
+            padding: 0 10px;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        .video-card {
+            background: white;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Fake Thumbnail Simulator */
+        .thumbnail-fallback {
+            background: linear-gradient(135deg, #cc181e, #e52d27);
+            height: 180px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 40px;
+            position: relative;
+        }
+
+        .thumbnail-fallback::after {
+            content: "▶";
+            background: rgba(0, 0, 0, 0.7);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            padding-left: 4px;
+        }
+
+        .video-info {
+            padding: 12px;
+        }
+
+        .video-title {
+            font-size: 15px;
+            font-weight: 600;
+            line-height: 1.3;
+            color: #111;
+            margin-bottom: 4px;
+            text-transform: capitalize; /* Cleans up messy file names slightly */
+        }
+
+        .video-meta {
+            font-size: 12px;
+            color: #606060;
+        }
+
+        /* Loading Indicator */
+        .status-msg {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-style: italic;
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>Spotify Web Player</h1>
-    <input type="text" id="spotify-link" placeholder="Paste your Spotify track link here...">
-    <br>
-    <button onclick="updatePlayer()">Play Song</button>
-    
-    <div id="player-container">
-        <!-- The Spotify embed will appear here -->
-    </div>
-</div>
+    <header>
+        <div class="logo">YouTube <span>iOS9</span></div>
+        <button class="refresh-btn" id="refreshBtn" title="Refresh Feed">🔄</button>
+    </header>
 
-<script>
-    function updatePlayer() {
-        const linkInput = document.getElementById('spotify-link').value;
-        const playerContainer = document.getElementById('player-container');
-        
-        let trackId = '';
-        
-        if (linkInput.includes('track/')) {
-            trackId = linkInput.split('track/')[1].split('?')[0];
+    <div class="player-container" id="playerContainer">
+        <video id="mainVideo" preload="metadata"></video>
+        <div class="video-controls">
+            <button class="play-pause-btn" id="playBtn">⏸</button>
+            <div class="progress-bar" id="progressBar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
+    </div>
+
+    <main class="feed" id="videoFeed">
+        <div class="status-msg" id="statusMsg">Scanning repository for videos...</div>
+    </main>
+
+    <script>
+        // --- Configuration ---
+        // Dynamically figures out your GitHub username and repo based on the URL
+        const currentUrl = window.location.href;
+        let repoApiUrl = '';
+
+        if (currentUrl.includes('github.io')) {
+            const pathParts = window.location.pathname.split('/');
+            const user = window.location.hostname.split('.')[0];
+            const repo = pathParts[1] || '';
+            repoApiUrl = `https://api.github.com/repos/${user}/${repo}/contents/`;
         } else {
-            alert('Please paste a valid Spotify track link.');
-            return;
+            // FALLBACK: If you test locally, replace these with your actual GitHub info
+            const YOUR_GITHUB_USERNAME = "username";
+            const YOUR_REPO_NAME = "repository";
+            repoApiUrl = `https://api.github.com/repos/${YOUR_GITHUB_USERNAME}/${YOUR_REPO_NAME}/contents/`;
         }
 
-        const embedCode = `
-            <iframe 
-                src="https://open.spotify.com/embed/track/${trackId}?utm_source=generator" 
-                width="100%" 
-                height="380" 
-                frameBorder="0" 
-                allowfullscreen="" 
-                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture">
-            </iframe>
-        `;
-        
-        playerContainer.innerHTML = embedCode;
-    }
-</script>
+        // --- DOM Elements ---
+        const feedContainer = document.getElementById('videoFeed');
+        const statusMsg = document.getElementById('statusMsg');
+        const refreshBtn = document.getElementById('refreshBtn');
+        const videoElement = document.getElementById('mainVideo');
+        const playerContainer = document.getElementById('playerContainer');
+        const playBtn = document.getElementById('playBtn');
+        const progressBar = document.getElementById('progressBar');
+        const progressFill = document.getElementById('progressFill');
 
+        // --- Fetch Data from GitHub Root ---
+        async function loadVideos() {
+            statusMsg.textContent = "Updating feed...";
+            statusMsg.style.display = "block";
+            
+            // Clear existing layout except the status msg
+            const cards = feedContainer.querySelectorAll('.video-card');
+            cards.forEach(card => card.remove());
+
+            try {
+                const response = await fetch(repoApiUrl);
+                if (!response.ok) throw new Error("Could not access repository contents via API.");
+                
+                const files = await response.json();
+                
+                // Filter only .mp4 files
+                const mp4Files = files.filter(file => file.name.toLowerCase().endsWith('.mp4'));
+
+                if (mp4Files.length === 0) {
+                    statusMsg.textContent = "No .mp4 files found in the root folder.";
+                    return;
+                }
+
+                statusMsg.style.display = "none";
+
+                // Generate cards
+                mp4Files.forEach(file => {
+                    // Strip out the extension (.mp4) and replace dashes/underscores with spaces
+                    const cleanName = file.name.substring(0, file.name.lastIndexOf('.'))
+                                               .replace(/[-_]/g, ' ');
+
+                    const card = document.createElement('div');
+                    card.className = 'video-card';
+                    card.innerHTML = `
+                        <div class="thumbnail-fallback"></div>
+                        <div class="video-info">
+                            <div class="video-title">${cleanName}</div>
+                            <div class="video-meta">Local File • MP4 Video</div>
+                        </div>
+                    `;
+
+                    // Handle Video Selection
+                    card.addEventListener('click', () => {
+                        playVideo(file.download_url);
+                    });
+
+                    feedContainer.appendChild(card);
+                });
+
+            } catch (error) {
+                console.error(error);
+                statusMsg.textContent = "Error loading files. Ensure this page is hosted on GitHub Pages or configuration is updated.";
+            }
+        }
+
+        // --- Video Player Controls ---
+        function playVideo(url) {
+            playerContainer.style.display = "block";
+            videoElement.src = url;
+            videoElement.play();
+            playBtn.textContent = "⏸";
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        playBtn.addEventListener('click', () => {
+            if (videoElement.paused) {
+                videoElement.play();
+                playBtn.textContent = "⏸";
+            } else {
+                videoElement.pause();
+                playBtn.textContent = "▶";
+            }
+        });
+
+        videoElement.addEventListener('timeupdate', () => {
+            const percentage = (videoElement.currentTime / videoElement.duration) * 100;
+            progressFill.style.width = percentage + '%';
+        });
+
+        progressBar.addEventListener('click', (e) => {
+            const rect = progressBar.getBoundingClientRect();
+            const pos = (e.clientX - rect.left) / rect.width;
+            videoElement.currentTime = pos * videoElement.duration;
+        });
+
+        // --- Event Listeners ---
+        refreshBtn.addEventListener('click', loadVideos);
+        
+        // Initial execution
+        loadVideos();
+    </script>
 </body>
 </html>
